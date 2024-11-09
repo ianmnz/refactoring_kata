@@ -56,3 +56,12 @@ def test_golden_master():
         reference = file.read()
 
     assert(output == reference)
+
+
+def test_add_player():
+    game = Game()
+
+    game.add('Player1')
+
+    assert(game.nb_of_players == 1)
+    assert(game.get_current_player() == game.players[0])

@@ -2,19 +2,28 @@
 # https://github.com/emilybache/trivia
 
 
+from dataclasses import dataclass, field
+from typing import Dict
+
+@dataclass
+class Player:
+    id: int
+    name: str
+    place: int = field(default=0)
+    purse: int = field(default=0)
+    is_in_penalty_box: bool = field(default=False)
+
+
 class Game:
     def __init__(self):
-        self.players = []
-        self.places = [0] * 6
-        self.purses = [0] * 6
-        self.in_penalty_box = [0] * 6
+        self.players: Dict[int, Player] = dict()
 
         self.pop_questions = []
         self.science_questions = []
         self.sports_questions = []
         self.rock_questions = []
 
-        self.current_player = 0
+        self.current_player: int = 0
         self.is_getting_out_of_penalty_box = False
 
         for i in range(50):
@@ -27,52 +36,51 @@ class Game:
         return "Rock Question %s" % index
 
     def is_playable(self):
-        return self.how_many_players >= 2
+        return self.nb_of_players >= 2
 
-    def add(self, player_name):
-        self.players.append(player_name)
-        self.places[self.how_many_players] = 0
-        self.purses[self.how_many_players] = 0
-        self.in_penalty_box[self.how_many_players] = False
+    def add(self, player_name: str) -> None:
+        new_player_id = self.nb_of_players
+        self.players[new_player_id] = Player(new_player_id, player_name)
 
         print(player_name + " was added")
-        print("They are player number %s" % len(self.players))
-
-        return True
+        print("They are player number %s" % self.nb_of_players)
 
     @property
-    def how_many_players(self):
+    def nb_of_players(self) -> int:
         return len(self.players)
 
+    def get_current_player(self) -> Player:
+        return self.players[self.current_player]
+
     def roll(self, roll):
-        print("%s is the current player" % self.players[self.current_player])
+        print("%s is the current player" % self.get_current_player().name)
         print("They have rolled a %s" % roll)
 
-        if self.in_penalty_box[self.current_player]:
+        if self.get_current_player().is_in_penalty_box:
             if roll % 2 != 0:
                 self.is_getting_out_of_penalty_box = True
 
-                print("%s is getting out of the penalty box" % self.players[self.current_player])
-                self.places[self.current_player] = self.places[self.current_player] + roll
-                if self.places[self.current_player] > 11:
-                    self.places[self.current_player] = self.places[self.current_player] - 12
+                print("%s is getting out of the penalty box" % self.get_current_player().name)
+                self.get_current_player().place = self.get_current_player().place + roll
+                if self.get_current_player().place > 11:
+                    self.get_current_player().place = self.get_current_player().place - 12
 
-                print(self.players[self.current_player] + \
+                print(self.get_current_player().name + \
                             '\'s new location is ' + \
-                            str(self.places[self.current_player]))
+                            str(self.get_current_player().place))
                 print("The category is %s" % self._current_category)
                 self._ask_question()
             else:
-                print("%s is not getting out of the penalty box" % self.players[self.current_player])
+                print("%s is not getting out of the penalty box" % self.get_current_player().name)
                 self.is_getting_out_of_penalty_box = False
         else:
-            self.places[self.current_player] = self.places[self.current_player] + roll
-            if self.places[self.current_player] > 11:
-                self.places[self.current_player] = self.places[self.current_player] - 12
+            self.get_current_player().place = self.get_current_player().place + roll
+            if self.get_current_player().place > 11:
+                self.get_current_player().place = self.get_current_player().place - 12
 
-            print(self.players[self.current_player] + \
+            print(self.get_current_player().name + \
                         '\'s new location is ' + \
-                        str(self.places[self.current_player]))
+                        str(self.get_current_player().place))
             print("The category is %s" % self._current_category)
             self._ask_question()
 
@@ -84,25 +92,25 @@ class Game:
 
     @property
     def _current_category(self):
-        if self.places[self.current_player] == 0: return 'Pop'
-        if self.places[self.current_player] == 4: return 'Pop'
-        if self.places[self.current_player] == 8: return 'Pop'
-        if self.places[self.current_player] == 1: return 'Science'
-        if self.places[self.current_player] == 5: return 'Science'
-        if self.places[self.current_player] == 9: return 'Science'
-        if self.places[self.current_player] == 2: return 'Sports'
-        if self.places[self.current_player] == 6: return 'Sports'
-        if self.places[self.current_player] == 10: return 'Sports'
+        if self.get_current_player().place == 0: return 'Pop'
+        if self.get_current_player().place == 4: return 'Pop'
+        if self.get_current_player().place == 8: return 'Pop'
+        if self.get_current_player().place == 1: return 'Science'
+        if self.get_current_player().place == 5: return 'Science'
+        if self.get_current_player().place == 9: return 'Science'
+        if self.get_current_player().place == 2: return 'Sports'
+        if self.get_current_player().place == 6: return 'Sports'
+        if self.get_current_player().place == 10: return 'Sports'
         return 'Rock'
 
     def was_correctly_answered(self):
-        if self.in_penalty_box[self.current_player]:
+        if self.get_current_player().is_in_penalty_box:
             if self.is_getting_out_of_penalty_box:
                 print('Answer was correct!!!!')
-                self.purses[self.current_player] += 1
-                print(self.players[self.current_player] + \
+                self.get_current_player().purse += 1
+                print(self.get_current_player().name + \
                     ' now has ' + \
-                    str(self.purses[self.current_player]) + \
+                    str(self.get_current_player().purse) + \
                     ' Gold Coins.')
 
                 winner = self._did_player_win()
@@ -120,10 +128,10 @@ class Game:
         else:
 
             print("Answer was corrent!!!!")
-            self.purses[self.current_player] += 1
-            print(self.players[self.current_player] + \
+            self.get_current_player().purse += 1
+            print(self.get_current_player().name + \
                 ' now has ' + \
-                str(self.purses[self.current_player]) + \
+                str(self.get_current_player().purse) + \
                 ' Gold Coins.')
 
             winner = self._did_player_win()
@@ -134,15 +142,15 @@ class Game:
 
     def wrong_answer(self):
         print('Question was incorrectly answered')
-        print(self.players[self.current_player] + " was sent to the penalty box")
-        self.in_penalty_box[self.current_player] = True
+        print(self.get_current_player().name + " was sent to the penalty box")
+        self.get_current_player().is_in_penalty_box = True
 
         self.current_player += 1
         if self.current_player == len(self.players): self.current_player = 0
         return True
 
     def _did_player_win(self):
-        return not (self.purses[self.current_player] == 6)
+        return not (self.get_current_player().purse == 6)
 
 
 from random import randrange
