@@ -65,6 +65,9 @@ class Game:
     def get_current_player(self) -> Player:
         return self.players[self.current_player]
 
+    def cycle_to_next_player(self) -> None:
+        self.current_player = (self.current_player + 1) % self.nb_of_players
+
     def roll(self, roll):
         print("%s is the current player" % self.get_current_player().name)
         print("They have rolled a %s" % roll)
@@ -108,54 +111,35 @@ class Game:
         category_idx: int = self.get_current_player().place % Question.Type.COUNT
         return str(Question.Type(category_idx))
 
-    def was_correctly_answered(self):
-        if self.get_current_player().is_in_penalty_box:
-            if self.is_getting_out_of_penalty_box:
-                print('Answer was correct!!!!')
-                self.get_current_player().purse += 1
-                print(self.get_current_player().name + \
-                    ' now has ' + \
-                    str(self.get_current_player().purse) + \
-                    ' Gold Coins.')
+    def was_correctly_answered(self) -> bool:
+        if (self.get_current_player().is_in_penalty_box
+            and (not self.is_getting_out_of_penalty_box)
+        ):
+            self.cycle_to_next_player()
+            return True
 
-                winner = self._did_player_win()
-                self.current_player += 1
-                if self.current_player == len(self.players): self.current_player = 0
+        self.get_current_player().purse += 1
 
-                return winner
-            else:
-                self.current_player += 1
-                if self.current_player == len(self.players): self.current_player = 0
-                return True
+        print("Answer was correct!!!!")
+        print(f"{self.get_current_player().name} now has {self.get_current_player().purse} Gold Coins.")
 
+        winner = self._did_player_win()
+        self.cycle_to_next_player()
 
+        return winner
 
-        else:
-
-            print("Answer was corrent!!!!")
-            self.get_current_player().purse += 1
-            print(self.get_current_player().name + \
-                ' now has ' + \
-                str(self.get_current_player().purse) + \
-                ' Gold Coins.')
-
-            winner = self._did_player_win()
-            self.current_player += 1
-            if self.current_player == len(self.players): self.current_player = 0
-
-            return winner
-
-    def wrong_answer(self):
+    def wrong_answer(self) -> bool:
         print('Question was incorrectly answered')
         print(self.get_current_player().name + " was sent to the penalty box")
+
         self.get_current_player().is_in_penalty_box = True
 
-        self.current_player += 1
-        if self.current_player == len(self.players): self.current_player = 0
+        self.cycle_to_next_player()
+
         return True
 
-    def _did_player_win(self):
-        return not (self.get_current_player().purse == 6)
+    def _did_player_win(self) -> bool:
+        return self.get_current_player().purse != 6
 
 
 from random import randrange

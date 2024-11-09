@@ -86,3 +86,46 @@ def test_current_category():
 
     player.place += 1
     assert(game._current_category == "Pop")
+
+
+def test_wrong_answer_cycling():
+    game = Game()
+    game.add("Player1")
+    game.add("Player2")
+
+    game.wrong_answer()
+    assert(game.current_player == 1)
+
+    game.wrong_answer()
+    assert(game.current_player == 0)
+
+
+def test_right_answer():
+    game = Game()
+    game.add("Player1")
+    game.add("Player2")
+    game.add("Player3")
+
+    player1 = game.get_current_player()
+
+    assert(player1.purse == 0)
+    assert(game.was_correctly_answered())
+    assert(player1.purse == 1)
+
+    player2 = game.get_current_player()
+    player2.is_in_penalty_box = True
+
+    assert(player2.purse == 0)
+    assert(game.was_correctly_answered())
+    assert(player2.purse == 0)
+
+    player3 = game.get_current_player()
+    player3.is_in_penalty_box = True
+    game.is_getting_out_of_penalty_box = True
+
+    assert(player3.purse == 0)
+    assert(game.was_correctly_answered())
+    assert(player3.purse == 1)
+
+    player1.purse = 5
+    assert(not game.was_correctly_answered())
