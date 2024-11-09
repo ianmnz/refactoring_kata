@@ -129,3 +129,42 @@ def test_right_answer():
 
     player1.purse = 5
     assert(not game.was_correctly_answered())
+
+
+def test_roll():
+    game = Game()
+    game.add("Player1")
+    game.add("Player2")
+    game.add("Player3")
+    game.add("Player4")
+
+    player1 = game.get_current_player()
+
+    assert(player1.place == 0)
+    game.roll(2)
+    assert(player1.place == 2)
+
+    game.cycle_to_next_player()
+    player2 = game.get_current_player()
+    player2.place = 11
+
+    game.roll(1)
+    assert(player2.place == 0)
+
+    game.cycle_to_next_player()
+    player3 = game.get_current_player()
+    player3.is_in_penalty_box = True
+    player3.place = 3
+
+    game.roll(4)    # Even integer roll
+    assert(player3.place == 3)
+    assert(not game.is_getting_out_of_penalty_box)
+
+    game.cycle_to_next_player()
+    player4 = game.get_current_player()
+    player4.is_in_penalty_box = True
+    player4.place = 7
+
+    game.roll(5)    # Odd integer roll
+    assert(player4.place == 0)
+    assert(game.is_getting_out_of_penalty_box)

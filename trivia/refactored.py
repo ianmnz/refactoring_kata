@@ -68,37 +68,28 @@ class Game:
     def cycle_to_next_player(self) -> None:
         self.current_player = (self.current_player + 1) % self.nb_of_players
 
-    def roll(self, roll):
+    def roll(self, roll: int) -> None:
         print("%s is the current player" % self.get_current_player().name)
         print("They have rolled a %s" % roll)
 
         if self.get_current_player().is_in_penalty_box:
             if roll % 2 != 0:
-                self.is_getting_out_of_penalty_box = True
-
                 print("%s is getting out of the penalty box" % self.get_current_player().name)
-                self.get_current_player().place = self.get_current_player().place + roll
-                if self.get_current_player().place > 11:
-                    self.get_current_player().place = self.get_current_player().place - 12
-
-                print(self.get_current_player().name + \
-                            '\'s new location is ' + \
-                            str(self.get_current_player().place))
-                print("The category is %s" % self._current_category)
-                self._ask_question()
+                self.is_getting_out_of_penalty_box = True
             else:
                 print("%s is not getting out of the penalty box" % self.get_current_player().name)
                 self.is_getting_out_of_penalty_box = False
-        else:
-            self.get_current_player().place = self.get_current_player().place + roll
-            if self.get_current_player().place > 11:
-                self.get_current_player().place = self.get_current_player().place - 12
+                return
 
-            print(self.get_current_player().name + \
-                        '\'s new location is ' + \
-                        str(self.get_current_player().place))
-            print("The category is %s" % self._current_category)
-            self._ask_question()
+        self.get_current_player().place = self.get_current_player().place + roll
+        if self.get_current_player().place > 11:
+            self.get_current_player().place = self.get_current_player().place - 12
+
+        print(self.get_current_player().name + \
+                    '\'s new location is ' + \
+                    str(self.get_current_player().place))
+        print("The category is %s" % self._current_category)
+        self._ask_question()
 
     def _ask_question(self) -> None:
         if self._current_category == 'Pop': print(self.questions[Question.Type.POP].popleft())
