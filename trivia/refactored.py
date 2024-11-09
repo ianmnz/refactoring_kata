@@ -2,8 +2,10 @@
 # https://github.com/emilybache/trivia
 
 
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Dict
+from enum import IntEnum, auto
+from typing import Dict, List
 
 @dataclass
 class Player:
@@ -13,27 +15,38 @@ class Player:
     purse: int = field(default=0)
     is_in_penalty_box: bool = field(default=False)
 
+@dataclass
+class Question:
+    class Type(IntEnum):
+        POP = 0
+        SCIENCE = 1
+        SPORTS = 2
+        ROCK = 3
+        COUNT = auto()
+
+        def __str__(self) -> str:
+            return self.name.title()
+
+    type: Type
+    index: int
+
+    def __str__(self) -> str:
+        return f"{self.type} Question {self.index}"
+
 
 class Game:
     def __init__(self):
         self.players: Dict[int, Player] = dict()
-
-        self.pop_questions = []
-        self.science_questions = []
-        self.sports_questions = []
-        self.rock_questions = []
+        self.questions: Dict[int, deque[Question]] = defaultdict(deque)
 
         self.current_player: int = 0
         self.is_getting_out_of_penalty_box = False
 
         for i in range(50):
-            self.pop_questions.append("Pop Question %s" % i)
-            self.science_questions.append("Science Question %s" % i)
-            self.sports_questions.append("Sports Question %s" % i)
-            self.rock_questions.append(self.create_rock_question(i))
-
-    def create_rock_question(self, index):
-        return "Rock Question %s" % index
+            self.questions[Question.Type.POP].append(Question(Question.Type.POP, i))
+            self.questions[Question.Type.SCIENCE].append(Question(Question.Type.SCIENCE, i))
+            self.questions[Question.Type.SPORTS].append(Question(Question.Type.SPORTS, i))
+            self.questions[Question.Type.ROCK].append(Question(Question.Type.ROCK, i))
 
     def is_playable(self):
         return self.nb_of_players >= 2
@@ -84,24 +97,16 @@ class Game:
             print("The category is %s" % self._current_category)
             self._ask_question()
 
-    def _ask_question(self):
-        if self._current_category == 'Pop': print(self.pop_questions.pop(0))
-        if self._current_category == 'Science': print(self.science_questions.pop(0))
-        if self._current_category == 'Sports': print(self.sports_questions.pop(0))
-        if self._current_category == 'Rock': print(self.rock_questions.pop(0))
+    def _ask_question(self) -> None:
+        if self._current_category == 'Pop': print(self.questions[Question.Type.POP].popleft())
+        if self._current_category == 'Science': print(self.questions[Question.Type.SCIENCE].popleft())
+        if self._current_category == 'Sports': print(self.questions[Question.Type.SPORTS].popleft())
+        if self._current_category == 'Rock': print(self.questions[Question.Type.ROCK].popleft())
 
     @property
-    def _current_category(self):
-        if self.get_current_player().place == 0: return 'Pop'
-        if self.get_current_player().place == 4: return 'Pop'
-        if self.get_current_player().place == 8: return 'Pop'
-        if self.get_current_player().place == 1: return 'Science'
-        if self.get_current_player().place == 5: return 'Science'
-        if self.get_current_player().place == 9: return 'Science'
-        if self.get_current_player().place == 2: return 'Sports'
-        if self.get_current_player().place == 6: return 'Sports'
-        if self.get_current_player().place == 10: return 'Sports'
-        return 'Rock'
+    def _current_category(self) -> str:
+        category_idx: int = self.get_current_player().place % Question.Type.COUNT
+        return str(Question.Type(category_idx))
 
     def was_correctly_answered(self):
         if self.get_current_player().is_in_penalty_box:
@@ -156,20 +161,30 @@ class Game:
 from random import randrange
 
 if __name__ == '__main__':
-    not_a_winner = False
+    # not_a_winner = False
 
-    game = Game()
+    # game = Game()
 
-    game.add('Chet')
-    game.add('Pat')
-    game.add('Sue')
+    # game.add('Chet')
+    # game.add('Pat')
+    # game.add('Sue')
 
-    while True:
-        game.roll(randrange(5) + 1)
+    # while True:
+    #     game.roll(randrange(5) + 1)
 
-        if randrange(9) == 7:
-            not_a_winner = game.wrong_answer()
-        else:
-            not_a_winner = game.was_correctly_answered()
+    #     if randrange(9) == 7:
+    #         not_a_winner = game.wrong_answer()
+    #     else:
+    #         not_a_winner = game.was_correctly_answered()
 
-        if not not_a_winner: break
+    #     if not not_a_winner: break
+
+    q = Question(Question.Type.SPORTS, 3)
+    pop = 4 % Question.Type.COUNT
+    sci = 5 % Question.Type.COUNT
+    spo = 6 % Question.Type.COUNT
+    roc = 7 % Question.Type.COUNT
+    print(Question.Type(pop))
+    print(Question.Type(sci))
+    print(Question.Type(spo))
+    print(Question.Type(roc))

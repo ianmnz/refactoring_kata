@@ -65,3 +65,24 @@ def test_add_player():
 
     assert(game.nb_of_players == 1)
     assert(game.get_current_player() == game.players[0])
+
+
+def test_current_category():
+    game = Game()
+
+    game.add("Player1")
+    player = game.get_current_player()
+
+    assert(game._current_category == "Pop")
+
+    player.place += 1
+    assert(game._current_category == "Science")
+
+    player.place += 1
+    assert(game._current_category == "Sports")
+
+    player.place += 1
+    assert(game._current_category == "Rock")
+
+    player.place += 1
+    assert(game._current_category == "Pop")
