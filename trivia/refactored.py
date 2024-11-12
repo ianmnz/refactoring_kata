@@ -16,7 +16,8 @@ class Player:
     purse: int = field(default=0)
     is_in_penalty_box: bool = field(default=False)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Question:
     class Type(IntEnum):
         POP = 0
@@ -49,6 +50,37 @@ class Game:
             self.questions[Question.Type.SPORTS].append(Question(Question.Type.SPORTS, i))
             self.questions[Question.Type.ROCK].append(Question(Question.Type.ROCK, i))
 
+    @property
+    def nb_of_players(self) -> int:
+        return len(self.players)
+
+    @property
+    def _current_category(self) -> str:
+        category_idx: int = self.get_current_player().place % Question.Type.COUNT
+        return str(Question.Type(category_idx))
+
+    def is_playable(self) -> bool:
+        return 2 <= self.nb_of_players <= 6
+
+    def get_current_player(self) -> Player:
+        return self.players[self.current_player]
+
+    def _did_player_win(self) -> bool:
+        return self.get_current_player().purse != 6
+
+    def is_player_in_penalty_box(self) -> bool:
+        return self.get_current_player().is_in_penalty_box
+
+    def cycle_to_next_player(self) -> None:
+        self.current_player = (self.current_player + 1) % self.nb_of_players
+
+    def add_player(self, player_name: str) -> None:
+        new_player_id = self.nb_of_players
+        self.players[new_player_id] = Player(new_player_id, player_name)
+
+        print(player_name + " was added")
+        print("They are player number %s" % self.nb_of_players)
+
     def run(self) -> None:
         not_a_winner = False
 
@@ -67,31 +99,11 @@ class Game:
             self.cycle_to_next_player()
             if not not_a_winner: break
 
-    def is_playable(self):
-        return 2 <= self.nb_of_players <= 6
-
-    def add(self, player_name: str) -> None:
-        new_player_id = self.nb_of_players
-        self.players[new_player_id] = Player(new_player_id, player_name)
-
-        print(player_name + " was added")
-        print("They are player number %s" % self.nb_of_players)
-
-    @property
-    def nb_of_players(self) -> int:
-        return len(self.players)
-
-    def get_current_player(self) -> Player:
-        return self.players[self.current_player]
-
-    def cycle_to_next_player(self) -> None:
-        self.current_player = (self.current_player + 1) % self.nb_of_players
-
     def roll(self, roll: int) -> None:
         print("%s is the current player" % self.get_current_player().name)
         print("They have rolled a %s" % roll)
 
-        if self.get_current_player().is_in_penalty_box:
+        if self.is_player_in_penalty_box():
             if roll % 2 != 0:
                 print("%s is getting out of the penalty box" % self.get_current_player().name)
                 self.is_getting_out_of_penalty_box = True
@@ -116,11 +128,6 @@ class Game:
         if self._current_category == 'Sports': print(self.questions[Question.Type.SPORTS].popleft())
         if self._current_category == 'Rock': print(self.questions[Question.Type.ROCK].popleft())
 
-    @property
-    def _current_category(self) -> str:
-        category_idx: int = self.get_current_player().place % Question.Type.COUNT
-        return str(Question.Type(category_idx))
-
     def was_correctly_answered(self) -> bool:
         if (self.get_current_player().is_in_penalty_box
             and (not self.is_getting_out_of_penalty_box)
@@ -142,15 +149,12 @@ class Game:
 
         return True
 
-    def _did_player_win(self) -> bool:
-        return self.get_current_player().purse != 6
-
 
 if __name__ == '__main__':
     game = Game()
 
-    game.add('Chet')
-    game.add('Pat')
-    game.add('Sue')
+    game.add_player('Chet')
+    game.add_player('Pat')
+    game.add_player('Sue')
 
     game.run()

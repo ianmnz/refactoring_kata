@@ -16,9 +16,9 @@ def test_golden_master():
     #     for _ in range(golden_master_nb_it):
     #         game = Game()
 
-    #         game.add('Player1')
-    #         game.add('Player2')
-    #         game.add('Player3')
+    #         game.add_player('Player1')
+    #         game.add_player('Player2')
+    #         game.add_player('Player3')
 
     #         game.run()
 
@@ -26,9 +26,9 @@ def test_golden_master():
         for _ in range(golden_master_nb_it):
             game = Game()
 
-            game.add('Player1')
-            game.add('Player2')
-            game.add('Player3')
+            game.add_player('Player1')
+            game.add_player('Player2')
+            game.add_player('Player3')
 
             game.run()
 
@@ -43,29 +43,29 @@ def test_golden_master():
 def test_add_player():
     game = Game()
 
-    game.add('Player1')
+    game.add_player('Player1')
 
     assert(game.nb_of_players == 1)
     assert(game.get_current_player() == game.players[0])
     assert(not game.is_playable())
 
-    game.add('Player2')
+    game.add_player('Player2')
     assert(game.is_playable())
 
-    game.add('Player3')
-    game.add('Player4')
-    game.add('Player5')
-    game.add('Player6')
+    game.add_player('Player3')
+    game.add_player('Player4')
+    game.add_player('Player5')
+    game.add_player('Player6')
     assert(game.is_playable())
 
-    game.add('Player7')
+    game.add_player('Player7')
     assert(not game.is_playable())
 
 
 def test_current_category():
     game = Game()
 
-    game.add("Player1")
+    game.add_player("Player1")
     player = game.get_current_player()
 
     assert(game._current_category == "Pop")
@@ -85,8 +85,8 @@ def test_current_category():
 
 def test_wrong_answer_cycling():
     game = Game()
-    game.add("Player1")
-    game.add("Player2")
+    game.add_player("Player1")
+    game.add_player("Player2")
 
     game.wrong_answer()
     assert(game.current_player == 1)
@@ -97,9 +97,9 @@ def test_wrong_answer_cycling():
 
 def test_right_answer():
     game = Game()
-    game.add("Player1")
-    game.add("Player2")
-    game.add("Player3")
+    game.add_player("Player1")
+    game.add_player("Player2")
+    game.add_player("Player3")
 
     player1 = game.get_current_player()
 
@@ -128,10 +128,10 @@ def test_right_answer():
 
 def test_roll():
     game = Game()
-    game.add("Player1")
-    game.add("Player2")
-    game.add("Player3")
-    game.add("Player4")
+    game.add_player("Player1")
+    game.add_player("Player2")
+    game.add_player("Player3")
+    game.add_player("Player4")
 
     player1 = game.get_current_player()
 
