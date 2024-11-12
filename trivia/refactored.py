@@ -58,7 +58,7 @@ class Game:
         return self.players[self.current_player_index]
 
     @property
-    def _current_category(self) -> Question.Type:
+    def current_category(self) -> Question.Type:
         category_idx: int = self.current_player.place % Question.Type.COUNT
         return Question.Type(category_idx)
 
@@ -71,20 +71,20 @@ class Game:
     def is_player_in_penalty_box(self) -> bool:
         return self.current_player.is_in_penalty_box
 
-    def cycle_to_next_player(self) -> None:
+    def _cycle_to_next_player(self) -> None:
         self.current_player_index = (self.current_player_index + 1) % self.nb_of_players
 
         print("%s is the current player" % self.current_player.name)
 
-    def skip_player(self, nb_steps) -> bool:
+    def _skip_current_player(self, nb_steps) -> bool:
         return nb_steps == 0
 
-    def update_player_position(self, nb_steps: int) -> None:
+    def _move_player(self, nb_steps: int) -> None:
         player = self.current_player
         player.place = (player.place + nb_steps) % 12
         print(f"{player.name}\'s new location is {player.place}")
 
-    def add_player(self, player_name: str) -> None:
+    def add_new_player(self, player_name: str) -> None:
         new_player_id = self.nb_of_players
         self.players[new_player_id] = Player(new_player_id, player_name)
 
@@ -97,13 +97,13 @@ class Game:
             return
 
         while True:
-            self.cycle_to_next_player()
-            nb_of_steps = self.roll(random.randrange(5) + 1)
+            self._cycle_to_next_player()
+            nb_of_steps = self._roll(random.randrange(5) + 1)
 
-            if self.skip_player(nb_of_steps):
+            if self._skip_current_player(nb_of_steps):
                 continue
 
-            self.update_player_position(nb_of_steps)
+            self._move_player(nb_of_steps)
 
             self._ask_question()
 
@@ -112,7 +112,7 @@ class Game:
             if self._did_player_win():
                 break
 
-    def roll(self, roll: int) -> int:
+    def _roll(self, roll: int) -> int:
         print("They have rolled a %s" % roll)
 
         if self.is_player_in_penalty_box():
@@ -125,22 +125,22 @@ class Game:
         return roll
 
     def _ask_question(self) -> None:
-        print("The category is %s" % str(self._current_category))
-        print(self.questions[self._current_category].popleft())
+        print("The category is %s" % str(self.current_category))
+        print(self.questions[self.current_category].popleft())
 
     def _check_answer(self) -> None:
         if random.randrange(9) == 7:
-            self.wrong_answer()
+            self._punish_wrong_answer()
         else:
-            self.was_correctly_answered()
+            self._reward_right_answer()
 
-    def was_correctly_answered(self) -> None:
+    def _reward_right_answer(self) -> None:
         self.current_player.purse += 1
 
         print("Answer was correct!!!!")
         print(f"{self.current_player.name} now has {self.current_player.purse} Gold Coins.")
 
-    def wrong_answer(self) -> None:
+    def _punish_wrong_answer(self) -> None:
         self.current_player.is_in_penalty_box = True
 
         print('Question was incorrectly answered')
@@ -150,8 +150,8 @@ class Game:
 if __name__ == '__main__':
     game = Game()
 
-    game.add_player('Chet')
-    game.add_player('Pat')
-    game.add_player('Sue')
+    game.add_new_player('Chet')
+    game.add_new_player('Pat')
+    game.add_new_player('Sue')
 
     game.play()
