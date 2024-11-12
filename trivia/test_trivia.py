@@ -12,32 +12,36 @@ def test_golden_master():
     golden_master_file = Path('trivia/golden_master.txt')
     golden_master_nb_it = 100
 
-    # with open(golden_master_file, 'w') as file, redirect_stdout(file):
-    #     for _ in range(golden_master_nb_it):
-    #         game = Game()
+    if (WRITE_GOLDEN_MASTER := False):
+        with open(golden_master_file, 'w') as file, redirect_stdout(file):
+            for _ in range(golden_master_nb_it):
+                game = Game()
 
-    #         game.add_new_player('Player1')
-    #         game.add_new_player('Player2')
-    #         game.add_new_player('Player3')
+                game.add_new_player('Player1')
+                game.add_new_player('Player2')
+                game.add_new_player('Player3')
 
-    #         game.play()
+                game.play()
 
-    with io.StringIO() as buffer, redirect_stdout(buffer):
-        for _ in range(golden_master_nb_it):
-            game = Game()
+        assert(False)
 
-            game.add_new_player('Player1')
-            game.add_new_player('Player2')
-            game.add_new_player('Player3')
+    else:
+        with io.StringIO() as buffer, redirect_stdout(buffer):
+            for _ in range(golden_master_nb_it):
+                game = Game()
 
-            game.play()
+                game.add_new_player('Player1')
+                game.add_new_player('Player2')
+                game.add_new_player('Player3')
 
-            output = buffer.getvalue()
+                game.play()
 
-    with open(golden_master_file, 'r') as file:
-        reference = file.read()
+                output = buffer.getvalue()
 
-    assert(output == reference)
+        with open(golden_master_file, 'r') as file:
+            reference = file.read()
+
+        assert(output == reference)
 
 
 def test_add_player():
