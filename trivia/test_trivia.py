@@ -5,7 +5,7 @@ import io
 from pathlib import Path
 from contextlib import redirect_stdout
 
-from refactored import Game
+from refactored import Game, Question
 
 def test_golden_master():
     random.seed(3)
@@ -20,7 +20,7 @@ def test_golden_master():
     #         game.add_player('Player2')
     #         game.add_player('Player3')
 
-    #         game.run()
+    #         game.play()
 
     with io.StringIO() as buffer, redirect_stdout(buffer):
         for _ in range(golden_master_nb_it):
@@ -30,7 +30,7 @@ def test_golden_master():
             game.add_player('Player2')
             game.add_player('Player3')
 
-            game.run()
+            game.play()
 
             output = buffer.getvalue()
 
@@ -68,19 +68,19 @@ def test_current_category():
     game.add_player("Player1")
     player = game.get_current_player()
 
-    assert(game._current_category == "Pop")
+    assert(game._current_category == Question.Type.POP)
 
     player.place += 1
-    assert(game._current_category == "Science")
+    assert(game._current_category == Question.Type.SCIENCE)
 
     player.place += 1
-    assert(game._current_category == "Sports")
+    assert(game._current_category == Question.Type.SPORTS)
 
     player.place += 1
-    assert(game._current_category == "Rock")
+    assert(game._current_category == Question.Type.ROCK)
 
     player.place += 1
-    assert(game._current_category == "Pop")
+    assert(game._current_category == Question.Type.POP)
 
 
 def test_wrong_answer_cycling():

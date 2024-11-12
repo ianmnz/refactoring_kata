@@ -55,9 +55,9 @@ class Game:
         return len(self.players)
 
     @property
-    def _current_category(self) -> str:
+    def _current_category(self) -> Question.Type:
         category_idx: int = self.get_current_player().place % Question.Type.COUNT
-        return str(Question.Type(category_idx))
+        return Question.Type(category_idx)
 
     def is_playable(self) -> bool:
         return 2 <= self.nb_of_players <= 6
@@ -75,8 +75,12 @@ class Game:
         self.current_player = (self.current_player + 1) % self.nb_of_players
 
     def update_player_position(self, nb_steps: int) -> None:
+        if nb_steps == 0:
+            return
+
         player = self.get_current_player()
         player.place = (player.place + nb_steps) % 12
+        print(f"{player.name}\'s new location is {player.place}")
 
     def add_player(self, player_name: str) -> None:
         new_player_id = self.nb_of_players
@@ -85,7 +89,7 @@ class Game:
         print(player_name + " was added")
         print("They are player number %s" % self.nb_of_players)
 
-    def run(self) -> None:
+    def play(self) -> None:
         not_a_winner = False
 
         if not self.is_playable():
@@ -93,7 +97,12 @@ class Game:
             return
 
         while True:
-            self.roll(random.randrange(5) + 1)
+            nb_of_steps = self.roll(random.randrange(5) + 1)
+
+            self.update_player_position(nb_of_steps)
+
+            if (not self.is_player_in_penalty_box()) or self.is_getting_out_of_penalty_box:
+                self._ask_question()
 
             if random.randrange(9) == 7:
                 not_a_winner = self.wrong_answer()
@@ -103,7 +112,7 @@ class Game:
             self.cycle_to_next_player()
             if not not_a_winner: break
 
-    def roll(self, roll: int) -> None:
+    def roll(self, roll: int) -> int:
         print("%s is the current player" % self.get_current_player().name)
         print("They have rolled a %s" % roll)
 
@@ -114,22 +123,16 @@ class Game:
             else:
                 print("%s is not getting out of the penalty box" % self.get_current_player().name)
                 self.is_getting_out_of_penalty_box = False
-                return
+                return 0
 
-        self.update_player_position(roll)
-
-        print(f"{self.get_current_player().name}\'s new location is {self.get_current_player().place}")
-        print("The category is %s" % self._current_category)
-        self._ask_question()
+        return roll
 
     def _ask_question(self) -> None:
-        if self._current_category == 'Pop': print(self.questions[Question.Type.POP].popleft())
-        if self._current_category == 'Science': print(self.questions[Question.Type.SCIENCE].popleft())
-        if self._current_category == 'Sports': print(self.questions[Question.Type.SPORTS].popleft())
-        if self._current_category == 'Rock': print(self.questions[Question.Type.ROCK].popleft())
+        print("The category is %s" % str(self._current_category))
+        print(self.questions[self._current_category].popleft())
 
     def was_correctly_answered(self) -> bool:
-        if (self.get_current_player().is_in_penalty_box
+        if (self.is_player_in_penalty_box()
             and (not self.is_getting_out_of_penalty_box)
         ):
             return True
@@ -157,4 +160,4 @@ if __name__ == '__main__':
     game.add_player('Pat')
     game.add_player('Sue')
 
-    game.run()
+    game.play()
