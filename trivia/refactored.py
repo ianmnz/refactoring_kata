@@ -65,25 +65,6 @@ class Game:
     def is_playable(self) -> bool:
         return 2 <= self.nb_of_players <= 6
 
-    def _did_player_win(self) -> bool:
-        return self.current_player.purse >= 6
-
-    def is_player_in_penalty_box(self) -> bool:
-        return self.current_player.is_in_penalty_box
-
-    def _cycle_to_next_player(self) -> None:
-        self.current_player_index = (self.current_player_index + 1) % self.nb_of_players
-
-        print("%s is the current player" % self.current_player.name)
-
-    def _skip_current_player(self, nb_steps) -> bool:
-        return nb_steps == 0
-
-    def _move_player(self, nb_steps: int) -> None:
-        player = self.current_player
-        player.place = (player.place + nb_steps) % 12
-        print(f"{player.name}\'s new location is {player.place}")
-
     def add_new_player(self, player_name: str) -> None:
         new_player_id = self.nb_of_players
         self.players[new_player_id] = Player(new_player_id, player_name)
@@ -112,6 +93,20 @@ class Game:
             if self._did_player_win():
                 break
 
+    def _skip_current_player(self, nb_steps) -> bool:
+        return nb_steps == 0
+
+    def is_player_in_penalty_box(self) -> bool:
+        return self.current_player.is_in_penalty_box
+
+    def _did_player_win(self) -> bool:
+        return self.current_player.purse >= 6
+
+    def _cycle_to_next_player(self) -> None:
+        self.current_player_index = (self.current_player_index + 1) % self.nb_of_players
+
+        print("%s is the current player" % self.current_player.name)
+
     def _roll(self, roll: int) -> int:
         print("They have rolled a %s" % roll)
 
@@ -123,6 +118,11 @@ class Game:
                 return 0
 
         return roll
+
+    def _move_player(self, nb_steps: int) -> None:
+        player = self.current_player
+        player.place = (player.place + nb_steps) % 12
+        print(f"{player.name}\'s new location is {player.place}")
 
     def _ask_question(self) -> None:
         print("The category is %s" % str(self.current_category))
