@@ -64,6 +64,7 @@ class Game:
             else:
                 not_a_winner = self.was_correctly_answered()
 
+            self.cycle_to_next_player()
             if not not_a_winner: break
 
     def is_playable(self):
@@ -124,7 +125,6 @@ class Game:
         if (self.get_current_player().is_in_penalty_box
             and (not self.is_getting_out_of_penalty_box)
         ):
-            self.cycle_to_next_player()
             return True
 
         self.get_current_player().purse += 1
@@ -132,18 +132,13 @@ class Game:
         print("Answer was correct!!!!")
         print(f"{self.get_current_player().name} now has {self.get_current_player().purse} Gold Coins.")
 
-        winner = self._did_player_win()
-        self.cycle_to_next_player()
-
-        return winner
+        return self._did_player_win()
 
     def wrong_answer(self) -> bool:
         print('Question was incorrectly answered')
         print(self.get_current_player().name + " was sent to the penalty box")
 
         self.get_current_player().is_in_penalty_box = True
-
-        self.cycle_to_next_player()
 
         return True
 
