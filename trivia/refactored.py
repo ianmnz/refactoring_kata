@@ -79,12 +79,11 @@ class Game:
 
         while True:
             self._cycle_to_next_player()
-            nb_of_steps = self._roll(random.randrange(5) + 1)
 
-            if self._skip_current_player(nb_of_steps):
+            roll = self._roll_dice()
+
+            if not self._move_player(roll):
                 continue
-
-            self._move_player(nb_of_steps)
 
             self._ask_question()
 
@@ -93,10 +92,7 @@ class Game:
             if self._did_player_win():
                 break
 
-    def _skip_current_player(self, nb_steps) -> bool:
-        return nb_steps == 0
-
-    def is_player_in_penalty_box(self) -> bool:
+    def _is_player_in_penalty_box(self) -> bool:
         return self.current_player.is_in_penalty_box
 
     def _did_player_win(self) -> bool:
@@ -107,19 +103,24 @@ class Game:
 
         print("%s is the current player" % self.current_player.name)
 
-    def _roll(self, roll: int) -> int:
+    def _roll_dice(self) -> int:
+        roll = random.randrange(5) + 1
         print("They have rolled a %s" % roll)
+        return roll
 
-        if self.is_player_in_penalty_box():
+    def _move_player(self, roll: int) -> bool:
+        if self._is_player_in_penalty_box():
             if roll % 2 != 0:
                 print("%s is getting out of the penalty box" % self.current_player.name)
             else:
                 print("%s is not getting out of the penalty box" % self.current_player.name)
-                return 0
+                return False
 
-        return roll
+        self._update_player_position(roll)
 
-    def _move_player(self, nb_steps: int) -> None:
+        return True
+
+    def _update_player_position(self, nb_steps: int) -> None:
         player = self.current_player
         player.place = (player.place + nb_steps) % 12
         print(f"{player.name}\'s new location is {player.place}")
