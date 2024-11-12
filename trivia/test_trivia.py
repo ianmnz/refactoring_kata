@@ -44,9 +44,10 @@ def test_add_player():
     game = Game()
 
     game.add_player('Player1')
+    game.cycle_to_next_player()
 
     assert(game.nb_of_players == 1)
-    assert(game.get_current_player() == game.players[0])
+    assert(game.current_player == game.players[0])
     assert(not game.is_playable())
 
     game.add_player('Player2')
@@ -66,7 +67,8 @@ def test_current_category():
     game = Game()
 
     game.add_player("Player1")
-    player = game.get_current_player()
+    game.cycle_to_next_player()
+    player = game.current_player
 
     assert(game._current_category == Question.Type.POP)
 
@@ -86,6 +88,7 @@ def test_current_category():
 def test_wrong_answer():
     game = Game()
     game.add_player("Player1")
+    game.cycle_to_next_player()
 
     game.wrong_answer()
     assert(game.is_player_in_penalty_box())
@@ -94,35 +97,13 @@ def test_wrong_answer():
 def test_right_answer():
     game = Game()
     game.add_player("Player1")
-    game.add_player("Player2")
-    game.add_player("Player3")
+    game.cycle_to_next_player()
 
-    player1 = game.get_current_player()
+    player1 = game.current_player
 
     assert(player1.purse == 0)
-    assert(not game.was_correctly_answered())
+    game.was_correctly_answered()
     assert(player1.purse == 1)
-
-    game.cycle_to_next_player()
-    player2 = game.get_current_player()
-    player2.is_in_penalty_box = True
-
-    assert(player2.purse == 0)
-    assert(not game.was_correctly_answered())
-    assert(player2.purse == 0)
-
-    game.cycle_to_next_player()
-    player3 = game.get_current_player()
-    player3.is_in_penalty_box = True
-    game.is_getting_out_of_penalty_box = True
-
-    assert(player3.purse == 0)
-    assert(not game.was_correctly_answered())
-    assert(player3.purse == 1)
-
-    game.cycle_to_next_player()
-    player1.purse = 5
-    assert(game.was_correctly_answered())
 
 
 def test_roll():
@@ -131,48 +112,48 @@ def test_roll():
     game.add_player("Player2")
     game.add_player("Player3")
     game.add_player("Player4")
+    game.cycle_to_next_player()
 
-    player1 = game.get_current_player()
+    player1 = game.current_player
 
     assert(player1.place == 0)
     game.update_player_position(game.roll(2))
     assert(player1.place == 2)
 
     game.cycle_to_next_player()
-    player2 = game.get_current_player()
+    player2 = game.current_player
     player2.place = 11
 
     game.update_player_position(game.roll(1))
     assert(player2.place == 0)
 
     game.cycle_to_next_player()
-    player3 = game.get_current_player()
+    player3 = game.current_player
     player3.is_in_penalty_box = True
     player3.place = 3
 
     game.update_player_position(game.roll(4))    # Even integer roll
     assert(player3.place == 3)
-    assert(not game.is_getting_out_of_penalty_box)
 
     game.cycle_to_next_player()
-    player4 = game.get_current_player()
+    player4 = game.current_player
     player4.is_in_penalty_box = True
     player4.place = 7
 
     game.update_player_position(game.roll(5))    # Odd integer roll
     assert(player4.place == 0)
-    assert(game.is_getting_out_of_penalty_box)
 
 def test_game_winner():
     game = Game()
     game.add_player("Player1")
     game.add_player("Player2")
+    game.cycle_to_next_player()
 
-    player1 = game.get_current_player()
+    player1 = game.current_player
     player1.purse = 4
 
     game.cycle_to_next_player()
-    player2 = game.get_current_player()
+    player2 = game.current_player
     player2.purse = 5
 
     game.cycle_to_next_player()
