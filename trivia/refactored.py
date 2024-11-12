@@ -74,6 +74,10 @@ class Game:
     def cycle_to_next_player(self) -> None:
         self.current_player = (self.current_player + 1) % self.nb_of_players
 
+    def update_player_position(self, nb_steps: int) -> None:
+        player = self.get_current_player()
+        player.place = (player.place + nb_steps) % 12
+
     def add_player(self, player_name: str) -> None:
         new_player_id = self.nb_of_players
         self.players[new_player_id] = Player(new_player_id, player_name)
@@ -112,13 +116,9 @@ class Game:
                 self.is_getting_out_of_penalty_box = False
                 return
 
-        self.get_current_player().place = self.get_current_player().place + roll
-        if self.get_current_player().place > 11:
-            self.get_current_player().place = self.get_current_player().place - 12
+        self.update_player_position(roll)
 
-        print(self.get_current_player().name + \
-                    '\'s new location is ' + \
-                    str(self.get_current_player().place))
+        print(f"{self.get_current_player().name}\'s new location is {self.get_current_player().place}")
         print("The category is %s" % self._current_category)
         self._ask_question()
 
