@@ -66,7 +66,7 @@ class Game:
         return self.players[self.current_player]
 
     def _did_player_win(self) -> bool:
-        return self.get_current_player().purse != 6
+        return self.get_current_player().purse >= 6
 
     def is_player_in_penalty_box(self) -> bool:
         return self.get_current_player().is_in_penalty_box
@@ -90,7 +90,7 @@ class Game:
         print("They are player number %s" % self.nb_of_players)
 
     def play(self) -> None:
-        not_a_winner = False
+        has_a_winner = False
 
         if not self.is_playable():
             print("The number of players must be at least 2 and at most 6!")
@@ -105,12 +105,12 @@ class Game:
                 self._ask_question()
 
             if random.randrange(9) == 7:
-                not_a_winner = self.wrong_answer()
+                has_a_winner = self.wrong_answer()
             else:
-                not_a_winner = self.was_correctly_answered()
+                has_a_winner = self.was_correctly_answered()
 
             self.cycle_to_next_player()
-            if not not_a_winner: break
+            if has_a_winner: break
 
     def roll(self, roll: int) -> int:
         print("%s is the current player" % self.get_current_player().name)
@@ -135,7 +135,7 @@ class Game:
         if (self.is_player_in_penalty_box()
             and (not self.is_getting_out_of_penalty_box)
         ):
-            return True
+            return False
 
         self.get_current_player().purse += 1
 
@@ -150,7 +150,7 @@ class Game:
 
         self.get_current_player().is_in_penalty_box = True
 
-        return True
+        return False
 
 
 if __name__ == '__main__':
