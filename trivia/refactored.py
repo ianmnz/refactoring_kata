@@ -53,7 +53,7 @@ class Game:
         not_a_winner = False
 
         if not self.is_playable():
-            print("The game needs at least 2 players to be played!")
+            print("The number of players must be at least 2 and at most 6!")
             return
 
         while True:
@@ -67,7 +67,7 @@ class Game:
             if not not_a_winner: break
 
     def is_playable(self):
-        return self.nb_of_players >= 2
+        return 2 <= self.nb_of_players <= 6
 
     def add(self, player_name: str) -> None:
         new_player_id = self.nb_of_players

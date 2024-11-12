@@ -49,6 +49,18 @@ def test_add_player():
     assert(game.get_current_player() == game.players[0])
     assert(not game.is_playable())
 
+    game.add('Player2')
+    assert(game.is_playable())
+
+    game.add('Player3')
+    game.add('Player4')
+    game.add('Player5')
+    game.add('Player6')
+    assert(game.is_playable())
+
+    game.add('Player7')
+    assert(not game.is_playable())
+
 
 def test_current_category():
     game = Game()
