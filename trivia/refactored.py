@@ -2,6 +2,7 @@
 # https://github.com/emilybache/trivia
 
 
+import random
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import IntEnum, auto
@@ -47,6 +48,23 @@ class Game:
             self.questions[Question.Type.SCIENCE].append(Question(Question.Type.SCIENCE, i))
             self.questions[Question.Type.SPORTS].append(Question(Question.Type.SPORTS, i))
             self.questions[Question.Type.ROCK].append(Question(Question.Type.ROCK, i))
+
+    def run(self) -> None:
+        not_a_winner = False
+
+        if not self.is_playable():
+            print("The game needs at least 2 players to be played!")
+            return
+
+        while True:
+            self.roll(random.randrange(5) + 1)
+
+            if random.randrange(9) == 7:
+                not_a_winner = self.wrong_answer()
+            else:
+                not_a_winner = self.was_correctly_answered()
+
+            if not not_a_winner: break
 
     def is_playable(self):
         return self.nb_of_players >= 2
@@ -133,33 +151,11 @@ class Game:
         return self.get_current_player().purse != 6
 
 
-from random import randrange
-
 if __name__ == '__main__':
-    # not_a_winner = False
+    game = Game()
 
-    # game = Game()
+    game.add('Chet')
+    game.add('Pat')
+    game.add('Sue')
 
-    # game.add('Chet')
-    # game.add('Pat')
-    # game.add('Sue')
-
-    # while True:
-    #     game.roll(randrange(5) + 1)
-
-    #     if randrange(9) == 7:
-    #         not_a_winner = game.wrong_answer()
-    #     else:
-    #         not_a_winner = game.was_correctly_answered()
-
-    #     if not not_a_winner: break
-
-    q = Question(Question.Type.SPORTS, 3)
-    pop = 4 % Question.Type.COUNT
-    sci = 5 % Question.Type.COUNT
-    spo = 6 % Question.Type.COUNT
-    roc = 7 % Question.Type.COUNT
-    print(Question.Type(pop))
-    print(Question.Type(sci))
-    print(Question.Type(spo))
-    print(Question.Type(roc))
+    game.run()

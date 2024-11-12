@@ -15,40 +15,22 @@ def test_golden_master():
     # with open(golden_master_file, 'w') as file, redirect_stdout(file):
     #     for _ in range(golden_master_nb_it):
     #         game = Game()
-    #         not_a_winner = False
 
     #         game.add('Player1')
     #         game.add('Player2')
     #         game.add('Player3')
 
-    #         while True:
-    #             game.roll(random.randrange(5) + 1)
-
-    #             if random.randrange(9) == 7:
-    #                 not_a_winner = game.wrong_answer()
-    #             else:
-    #                 not_a_winner = game.was_correctly_answered()
-
-    #             if not not_a_winner: break
+    #         game.run()
 
     with io.StringIO() as buffer, redirect_stdout(buffer):
         for _ in range(golden_master_nb_it):
             game = Game()
-            not_a_winner = False
 
             game.add('Player1')
             game.add('Player2')
             game.add('Player3')
 
-            while True:
-                game.roll(random.randrange(5) + 1)
-
-                if random.randrange(9) == 7:
-                    not_a_winner = game.wrong_answer()
-                else:
-                    not_a_winner = game.was_correctly_answered()
-
-                if not not_a_winner: break
+            game.run()
 
             output = buffer.getvalue()
 
@@ -65,6 +47,7 @@ def test_add_player():
 
     assert(game.nb_of_players == 1)
     assert(game.get_current_player() == game.players[0])
+    assert(not game.is_playable())
 
 
 def test_current_category():
