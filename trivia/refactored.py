@@ -9,6 +9,18 @@ from dataclasses import dataclass, field
 from enum import IntEnum, auto
 from typing import Dict, Optional
 
+
+# Parameters
+NB_OF_QUESTIONS: int = 50
+NB_OF_PLAYER_MIN: int = 2
+NB_OF_PLAYER_MAX: int = 6
+ROLL_RANGE_MIN: int = 1
+ROLL_RANGE_MAX: int = 6
+BOARD_LENGTH: int = 12
+WINNING_CRITERION_THRESHOLD: int = 6
+WRONG_ANSWER_PROB_THRESHOLD: float = 1 / 9
+
+
 @dataclass
 class Player:
     id: int
@@ -51,7 +63,7 @@ class Game:
             self.logger.setLevel("DEBUG")
             self.logger.addHandler(logging.StreamHandler())
 
-        for i in range(50):
+        for i in range(NB_OF_QUESTIONS):
             self.questions[Question.Type.POP].append(Question(Question.Type.POP, i))
             self.questions[Question.Type.SCIENCE].append(Question(Question.Type.SCIENCE, i))
             self.questions[Question.Type.SPORTS].append(Question(Question.Type.SPORTS, i))
@@ -71,7 +83,7 @@ class Game:
         return Question.Type(category_idx)
 
     def is_playable(self) -> bool:
-        return 2 <= self.nb_of_players <= 6
+        return NB_OF_PLAYER_MIN <= self.nb_of_players <= NB_OF_PLAYER_MAX
 
     def add_new_player(self, player_name: str) -> None:
         new_player_id = self.nb_of_players
@@ -82,7 +94,9 @@ class Game:
 
     def play(self) -> None:
         if not self.is_playable():
-            self.logger.info("The number of players must be at least 2 and at most 6!")
+            self.logger.info(f"The number of players must be \
+                             at least {NB_OF_PLAYER_MIN} and \
+                             at most {NB_OF_PLAYER_MAX}!")
             return
 
         while True:
@@ -100,11 +114,12 @@ class Game:
             if self._did_player_win():
                 break
 
+
     def _is_player_in_penalty_box(self) -> bool:
         return self.current_player.is_in_penalty_box
 
     def _did_player_win(self) -> bool:
-        return self.current_player.purse >= 6
+        return self.current_player.purse >= WINNING_CRITERION_THRESHOLD
 
     def _cycle_to_next_player(self) -> None:
         self.current_player_index = (self.current_player_index + 1) % self.nb_of_players
@@ -112,7 +127,7 @@ class Game:
         self.logger.info(f"{self.current_player.name} is the current player")
 
     def _roll_dice(self) -> int:
-        roll = random.randrange(5) + 1
+        roll = random.randrange(ROLL_RANGE_MIN, ROLL_RANGE_MAX + 1)
         self.logger.info(f"They have rolled a {roll}")
         return roll
 
@@ -130,7 +145,7 @@ class Game:
 
     def _update_player_position(self, nb_steps: int) -> None:
         player = self.current_player
-        player.place = (player.place + nb_steps) % 12
+        player.place = (player.place + nb_steps) % BOARD_LENGTH
         self.logger.info(f"{player.name}'s new location is {player.place}")
 
     def _ask_question(self) -> None:
@@ -138,7 +153,7 @@ class Game:
         self.logger.info(self.questions[self.current_category].popleft())
 
     def _check_answer(self) -> None:
-        if random.randrange(9) == 7:
+        if random.random() < WRONG_ANSWER_PROB_THRESHOLD:
             self._punish_wrong_answer()
         else:
             self._reward_right_answer()

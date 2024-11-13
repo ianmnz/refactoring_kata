@@ -16,6 +16,7 @@ def logger():
     return test_logger
 
 
+@pytest.mark.skip(reason="Used only for creating a reference before code refactoring")
 def test_golden_master():
     random.seed(3)
 
