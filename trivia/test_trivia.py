@@ -6,7 +6,7 @@ import pytest
 import random
 from pathlib import Path
 
-from refactored import (
+from trivia.refactored import (
     Game,
     Question,
     WINNING_CRITERION_THRESHOLD,
