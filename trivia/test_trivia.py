@@ -6,7 +6,12 @@ import pytest
 import random
 from pathlib import Path
 
-from refactored import Game, Question
+from refactored import (
+    Game,
+    Question,
+    WINNING_CRITERION_THRESHOLD,
+    BOARD_LENGTH,
+)
 
 
 @pytest.fixture
@@ -69,11 +74,23 @@ def test_add_player(logger):
 
     assert(game.nb_of_players == 1)
     assert(game.current_player == game.players[0])
+
+
+def test_playability_2_players(logger):
+    game = Game(logger)
+
+    game.add_new_player('Player1')
     assert(not game.is_playable())
 
     game.add_new_player('Player2')
     assert(game.is_playable())
 
+
+def test_playability_6_players(logger):
+    game = Game(logger)
+
+    game.add_new_player('Player1')
+    game.add_new_player('Player2')
     game.add_new_player('Player3')
     game.add_new_player('Player4')
     game.add_new_player('Player5')
@@ -84,7 +101,7 @@ def test_add_player(logger):
     assert(not game.is_playable())
 
 
-def test_current_category(logger):
+def test_current_category_cycle(logger):
     game = Game(logger)
 
     game.add_new_player("Player1")
@@ -111,6 +128,7 @@ def test_wrong_answer(logger):
     game.add_new_player("Player1")
     game._cycle_to_next_player()
 
+    assert(not game._is_player_in_penalty_box())
     game._punish_wrong_answer()
     assert(game._is_player_in_penalty_box())
 
@@ -130,69 +148,89 @@ def test_right_answer(logger):
 def test_update_player_position(logger):
     game = Game(logger)
     game.add_new_player("Player1")
-    game.add_new_player("Player2")
     game._cycle_to_next_player()
 
-    player1 = game.current_player
+    player = game.current_player
 
-    assert(player1.place == 0)
+    assert(player.place == 0)
     game._update_player_position(2)
-    assert(player1.place == 2)
+    assert(player.place == 2)
 
+
+def test_player_position_wraps_around(logger):
+    game = Game(logger)
+    game.add_new_player("Player1")
     game._cycle_to_next_player()
-    player2 = game.current_player
-    player2.place = 11
+
+    player = game.current_player
+    player.place = BOARD_LENGTH - 1
 
     game._update_player_position(1)
-    assert(player2.place == 0)
+    assert(player.place == 0)
 
 
-def test_move_player(logger):
+def test_even_roll_outside_penalty_box(logger):
     game = Game(logger)
     game.add_new_player("Player1")
-    game.add_new_player("Player2")
-    game.add_new_player("Player3")
     game._cycle_to_next_player()
 
-    player1 = game.current_player
-    player1.is_in_penalty_box = True
+    player = game.current_player
+    player.is_in_penalty_box = False
 
-    assert(not game._move_player(4))    # Even integer roll
-
-    game._cycle_to_next_player()
-    player2 = game.current_player
-    player2.is_in_penalty_box = True
-
-    assert(game._move_player(3))    # Odd integer roll
-
-    game._cycle_to_next_player()
-    player3 = game.current_player
-    player3.is_in_penalty_box = False
-
-    assert(game._move_player(4))    # Even integer roll but not in penalty box
+    assert(game._move_player(4))
 
 
-def test_game_winner(logger):
+def test_odd_roll_outside_penalty_box(logger):
     game = Game(logger)
     game.add_new_player("Player1")
-    game.add_new_player("Player2")
     game._cycle_to_next_player()
 
-    player1 = game.current_player
-    player1.purse = 4
+    player = game.current_player
+    player.is_in_penalty_box = False
 
+    assert(game._move_player(3))
+
+
+def test_even_roll_inside_penalty_box(logger):
+    game = Game(logger)
+    game.add_new_player("Player1")
     game._cycle_to_next_player()
-    player2 = game.current_player
-    player2.purse = 5
 
+    player = game.current_player
+    player.is_in_penalty_box = True
+
+    assert(not game._move_player(4))
+
+
+def test_odd_roll_inside_penalty_box(logger):
+    game = Game(logger)
+    game.add_new_player("Player1")
     game._cycle_to_next_player()
-    game._reward_right_answer()
 
-    assert(player1.purse == 5)
-    assert(not game._did_player_win()) # player1.purse != 6
+    player = game.current_player
+    player.is_in_penalty_box = True
 
+    assert(game._move_player(3))
+
+
+def test_player_has_won(logger):
+    game = Game(logger)
+    game.add_new_player("Player1")
     game._cycle_to_next_player()
-    game._reward_right_answer()
 
-    assert(player2.purse == 6)
-    assert(game._did_player_win()) # player2.purse == 6
+    player = game.current_player
+    player.purse = WINNING_CRITERION_THRESHOLD
+
+    assert(game._did_player_win())
+
+
+def test_player_has_not_won(logger):
+    game = Game(logger)
+    game.add_new_player("Player1")
+    game._cycle_to_next_player()
+
+    player = game.current_player
+    player.purse = WINNING_CRITERION_THRESHOLD - 1
+
+    assert(player.purse == 5)
+    assert(not game._did_player_win())
