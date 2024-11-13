@@ -2,11 +2,12 @@
 # https://github.com/emilybache/trivia
 
 
+import logging
 import random
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import IntEnum, auto
-from typing import Dict, List
+from typing import Dict, Optional
 
 @dataclass
 class Player:
@@ -37,11 +38,18 @@ class Question:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None):
         self.players: Dict[int, Player] = dict()
         self.questions: Dict[int, deque[Question]] = defaultdict(deque)
 
         self.current_player_index: int = -1
+
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel("DEBUG")
+            self.logger.addHandler(logging.StreamHandler())
 
         for i in range(50):
             self.questions[Question.Type.POP].append(Question(Question.Type.POP, i))
@@ -69,12 +77,12 @@ class Game:
         new_player_id = self.nb_of_players
         self.players[new_player_id] = Player(new_player_id, player_name)
 
-        print(player_name + " was added")
-        print("They are player number %s" % self.nb_of_players)
+        self.logger.info(f"{player_name} was added")
+        self.logger.info(f"They are player number {self.nb_of_players}")
 
     def play(self) -> None:
         if not self.is_playable():
-            print("The number of players must be at least 2 and at most 6!")
+            self.logger.info("The number of players must be at least 2 and at most 6!")
             return
 
         while True:
@@ -101,19 +109,19 @@ class Game:
     def _cycle_to_next_player(self) -> None:
         self.current_player_index = (self.current_player_index + 1) % self.nb_of_players
 
-        print("%s is the current player" % self.current_player.name)
+        self.logger.info(f"{self.current_player.name} is the current player")
 
     def _roll_dice(self) -> int:
         roll = random.randrange(5) + 1
-        print("They have rolled a %s" % roll)
+        self.logger.info(f"They have rolled a {roll}")
         return roll
 
     def _move_player(self, roll: int) -> bool:
         if self._is_player_in_penalty_box():
             if roll % 2 != 0:
-                print("%s is getting out of the penalty box" % self.current_player.name)
+                self.logger.info(f"{self.current_player.name} is getting out of the penalty box")
             else:
-                print("%s is not getting out of the penalty box" % self.current_player.name)
+                self.logger.info(f"{self.current_player.name} is not getting out of the penalty box")
                 return False
 
         self._update_player_position(roll)
@@ -123,11 +131,11 @@ class Game:
     def _update_player_position(self, nb_steps: int) -> None:
         player = self.current_player
         player.place = (player.place + nb_steps) % 12
-        print(f"{player.name}\'s new location is {player.place}")
+        self.logger.info(f"{player.name}'s new location is {player.place}")
 
     def _ask_question(self) -> None:
-        print("The category is %s" % str(self.current_category))
-        print(self.questions[self.current_category].popleft())
+        self.logger.info(f"The category is {self.current_category}")
+        self.logger.info(self.questions[self.current_category].popleft())
 
     def _check_answer(self) -> None:
         if random.randrange(9) == 7:
@@ -138,14 +146,14 @@ class Game:
     def _reward_right_answer(self) -> None:
         self.current_player.purse += 1
 
-        print("Answer was correct!!!!")
-        print(f"{self.current_player.name} now has {self.current_player.purse} Gold Coins.")
+        self.logger.info("Answer was correct!!!!")
+        self.logger.info(f"{self.current_player.name} now has {self.current_player.purse} Gold Coins.")
 
     def _punish_wrong_answer(self) -> None:
         self.current_player.is_in_penalty_box = True
 
-        print('Question was incorrectly answered')
-        print(self.current_player.name + " was sent to the penalty box")
+        self.logger.info("Question was incorrectly answered")
+        self.logger.info(f"{self.current_player.name} was sent to the penalty box")
 
 
 if __name__ == '__main__':

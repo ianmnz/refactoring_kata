@@ -1,51 +1,67 @@
 # Test file for trivia kata
 
-import random
 import io
+import logging
+import pytest
+import random
 from pathlib import Path
-from contextlib import redirect_stdout
 
 from refactored import Game, Question
 
+
+@pytest.fixture
+def logger():
+    test_logger = logging.getLogger(__name__)
+    test_logger.setLevel("ERROR")
+    return test_logger
+
+
 def test_golden_master():
     random.seed(3)
+
     golden_master_file = Path('trivia/golden_master.txt')
     golden_master_nb_it = 100
 
+    logger = logging.getLogger(__name__)
+    logger.setLevel("DEBUG")
+
     if (WRITE_GOLDEN_MASTER := False):
-        with open(golden_master_file, 'w') as file, redirect_stdout(file):
-            for _ in range(golden_master_nb_it):
-                game = Game()
+        file_handler = logging.FileHandler(golden_master_file, mode="w")
+        logger.addHandler(file_handler)
 
-                game.add_new_player('Player1')
-                game.add_new_player('Player2')
-                game.add_new_player('Player3')
+        for _ in range(golden_master_nb_it):
+            game = Game(logger)
 
-                game.play()
+            game.add_new_player('Player1')
+            game.add_new_player('Player2')
+            game.add_new_player('Player3')
+
+            game.play()
 
         assert(False)
 
     else:
-        with io.StringIO() as buffer, redirect_stdout(buffer):
-            for _ in range(golden_master_nb_it):
-                game = Game()
+        buffer = io.StringIO()
+        buffer_handler = logging.StreamHandler(buffer)
+        logger.addHandler(buffer_handler)
 
-                game.add_new_player('Player1')
-                game.add_new_player('Player2')
-                game.add_new_player('Player3')
+        for _ in range(golden_master_nb_it):
+            game = Game(logger)
 
-                game.play()
+            game.add_new_player('Player1')
+            game.add_new_player('Player2')
+            game.add_new_player('Player3')
 
-                output = buffer.getvalue()
+            game.play()
 
         with open(golden_master_file, 'r') as file:
             reference = file.read()
 
-        assert(output == reference)
+        assert(buffer.getvalue() == reference)
 
 
-def test_add_player():
-    game = Game()
+def test_add_player(logger):
+    game = Game(logger)
 
     game.add_new_player('Player1')
     game._cycle_to_next_player()
@@ -67,8 +83,8 @@ def test_add_player():
     assert(not game.is_playable())
 
 
-def test_current_category():
-    game = Game()
+def test_current_category(logger):
+    game = Game(logger)
 
     game.add_new_player("Player1")
     game._cycle_to_next_player()
@@ -89,8 +105,8 @@ def test_current_category():
     assert(game.current_category == Question.Type.POP)
 
 
-def test_wrong_answer():
-    game = Game()
+def test_wrong_answer(logger):
+    game = Game(logger)
     game.add_new_player("Player1")
     game._cycle_to_next_player()
 
@@ -98,8 +114,8 @@ def test_wrong_answer():
     assert(game._is_player_in_penalty_box())
 
 
-def test_right_answer():
-    game = Game()
+def test_right_answer(logger):
+    game = Game(logger)
     game.add_new_player("Player1")
     game._cycle_to_next_player()
 
@@ -110,8 +126,8 @@ def test_right_answer():
     assert(player1.purse == 1)
 
 
-def test_update_player_position():
-    game = Game()
+def test_update_player_position(logger):
+    game = Game(logger)
     game.add_new_player("Player1")
     game.add_new_player("Player2")
     game._cycle_to_next_player()
@@ -130,8 +146,8 @@ def test_update_player_position():
     assert(player2.place == 0)
 
 
-def test_move_player():
-    game = Game()
+def test_move_player(logger):
+    game = Game(logger)
     game.add_new_player("Player1")
     game.add_new_player("Player2")
     game.add_new_player("Player3")
@@ -155,8 +171,8 @@ def test_move_player():
     assert(game._move_player(4))    # Even integer roll but not in penalty box
 
 
-def test_game_winner():
-    game = Game()
+def test_game_winner(logger):
+    game = Game(logger)
     game.add_new_player("Player1")
     game.add_new_player("Player2")
     game._cycle_to_next_player()
