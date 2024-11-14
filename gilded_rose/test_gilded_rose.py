@@ -6,17 +6,29 @@ import random
 from itertools import product
 from pathlib import Path
 
-from gilded_rose.refactored import Item, GildedRose
+from gilded_rose.refactored import (
+    Item,
+    GildedRose,
+    AGED_BRIE_STR,
+    SULFURAS_STR,
+    BACKSTAGE_PASS_STR,
+    QUALITY_UPPER_THRESHOLD,
+    SELL_IN_MIDDLE_THRESHOLD,
+    SELL_IN_UPPER_THRESHOLD,
+)
+
+ANY_VALUE = 100
+random.seed(13)
 
 
-# @pytest.mark.skip(reason="")
+@pytest.mark.skip(reason="Used only for creating a reference before code refactoring")
 def test_golden_master():
     golden_master_file = Path('gilded_rose/golden_master.txt')
 
     name_values = ["",
-                   "Aged Brie",
-                   "Backstage passes to a TAFKAL80ETC concert",
-                   "Sulfuras, Hand of Ragnaros",
+                   AGED_BRIE_STR,
+                   BACKSTAGE_PASS_STR,
+                   SULFURAS_STR,
                    "Foo"]
 
     sell_in_values = range(-10, 20, 5)
@@ -61,24 +73,22 @@ def test_item_repr():
 
 
 def test_sulfuras_named_item_dont_change():
-    random.seed(1)
-    sell_in = random.randint(-100, 100)
-    quality = random.randint(-100, 100)
-    items = [Item("Sulfuras, Hand of Ragnaros", sell_in, quality)]
+    sell_in = random.randint(-ANY_VALUE, ANY_VALUE)
+    quality = random.randint(-ANY_VALUE, ANY_VALUE)
+    items = [Item(SULFURAS_STR, sell_in, quality)]
 
     gilded_rose = GildedRose(items)
     gilded_rose.update_quality()
 
-    assert(Item("Sulfuras, Hand of Ragnaros", sell_in, quality) == items[0])
+    assert(Item(SULFURAS_STR, sell_in, quality) == items[0])
 
 
 def test_any_name_item_decrements_sell_in():
-    random.seed(2)
-    quality = random.randint(-100, 100)
-    sell_in = random.randint(-100, 100)
+    quality = random.randint(-ANY_VALUE, ANY_VALUE)
+    sell_in = random.randint(-ANY_VALUE, ANY_VALUE)
     items = [
-        Item("Aged Brie", sell_in, quality),
-        Item("Backstage passes to a TAFKAL80ETC concert", sell_in, quality),
+        Item(AGED_BRIE_STR, sell_in, quality),
+        Item(BACKSTAGE_PASS_STR, sell_in, quality),
         Item("Foo", sell_in, quality),
     ]
 
@@ -91,11 +101,10 @@ def test_any_name_item_decrements_sell_in():
 
 
 def test_backstage_named_item_with_sell_in_leq_0():
-    random.seed(3)
     items = [
-        Item("Backstage passes to a TAFKAL80ETC concert",
-             random.randint(-100, 0),
-             random.randint(-100, 100))
+        Item(BACKSTAGE_PASS_STR,
+             random.randint(-ANY_VALUE, 0),
+             random.randint(-ANY_VALUE, ANY_VALUE))
     ]
 
     gilded_rose = GildedRose(items)
@@ -105,27 +114,27 @@ def test_backstage_named_item_with_sell_in_leq_0():
 
 
 def test_backstage_named_item_with_quality_eq_49():
-    random.seed(4)
     items = [
-        Item("Backstage passes to a TAFKAL80ETC concert", random.randint(1, 100), 49),
+        Item(BACKSTAGE_PASS_STR,
+             random.randint(1, ANY_VALUE),
+             QUALITY_UPPER_THRESHOLD - 1),
     ]
 
     gilded_rose = GildedRose(items)
     gilded_rose.update_quality()
 
-    assert(items[0].quality == 50)
+    assert(items[0].quality == QUALITY_UPPER_THRESHOLD)
 
 
 def test_backstage_named_item_with_sell_in_gt_0_and_quality_lt_49():
-    random.seed(4)
-    quality = random.randint(-100, 48)
-    small_sell_in = random.randint(1, 5)
-    avg_sell_in = random.randint(6, 10)
-    big_sell_in = random.randint(11, 100)
+    quality = random.randint(-ANY_VALUE, QUALITY_UPPER_THRESHOLD - 2)
+    small_sell_in = random.randint(1, SELL_IN_MIDDLE_THRESHOLD)
+    avg_sell_in = random.randint(SELL_IN_MIDDLE_THRESHOLD + 1, SELL_IN_UPPER_THRESHOLD)
+    big_sell_in = random.randint(SELL_IN_UPPER_THRESHOLD + 1, ANY_VALUE)
     items = [
-        Item("Backstage passes to a TAFKAL80ETC concert", small_sell_in, quality),
-        Item("Backstage passes to a TAFKAL80ETC concert", avg_sell_in, quality),
-        Item("Backstage passes to a TAFKAL80ETC concert", big_sell_in, quality),
+        Item(BACKSTAGE_PASS_STR, small_sell_in, quality),
+        Item(BACKSTAGE_PASS_STR, avg_sell_in, quality),
+        Item(BACKSTAGE_PASS_STR, big_sell_in, quality),
     ]
 
     gilded_rose = GildedRose(items)
@@ -137,10 +146,9 @@ def test_backstage_named_item_with_sell_in_gt_0_and_quality_lt_49():
 
 
 def test_backstage_named_item_with_quality_geq_50():
-    random.seed(4)
-    quality = random.randint(50, 100)
+    quality = random.randint(QUALITY_UPPER_THRESHOLD, ANY_VALUE)
     items = [
-        Item("Backstage passes to a TAFKAL80ETC concert", random.randint(1, 100), quality),
+        Item(BACKSTAGE_PASS_STR, random.randint(1, ANY_VALUE), quality),
     ]
 
     gilded_rose = GildedRose(items)
@@ -150,23 +158,23 @@ def test_backstage_named_item_with_quality_geq_50():
 
 
 def test_aged_brie_named_item_with_quality_eq_49():
-    random.seed(5)
     items = [
-        Item("Aged Brie", random.randint(-100, 100), 49),
+        Item(AGED_BRIE_STR,
+             random.randint(-ANY_VALUE, ANY_VALUE),
+             QUALITY_UPPER_THRESHOLD - 1),
     ]
 
     gilded_rose = GildedRose(items)
     gilded_rose.update_quality()
 
-    assert(items[0].quality == 50)
+    assert(items[0].quality == QUALITY_UPPER_THRESHOLD)
 
 
 def test_aged_brie_named_item_with_quality_lt_49():
-    random.seed(5)
-    quality = random.randint(-100, 48)
+    quality = random.randint(-ANY_VALUE, QUALITY_UPPER_THRESHOLD - 2)
     items = [
-        Item("Aged Brie", random.randint(-100, 0), quality),
-        Item("Aged Brie", random.randint(1, 100), quality)
+        Item(AGED_BRIE_STR, random.randint(-ANY_VALUE, 0), quality),
+        Item(AGED_BRIE_STR, random.randint(1, ANY_VALUE), quality)
     ]
 
     gilded_rose = GildedRose(items)
@@ -177,10 +185,11 @@ def test_aged_brie_named_item_with_quality_lt_49():
 
 
 def test_aged_brie_named_item_with_quality_geq_50():
-    random.seed(5)
-    quality = random.randint(50, 100)
+    quality = random.randint(QUALITY_UPPER_THRESHOLD, ANY_VALUE)
     items = [
-        Item("Aged Brie", random.randint(-100, 100), quality),
+        Item(AGED_BRIE_STR,
+             random.randint(-ANY_VALUE, ANY_VALUE),
+             quality),
     ]
 
     gilded_rose = GildedRose(items)
@@ -190,10 +199,9 @@ def test_aged_brie_named_item_with_quality_geq_50():
 
 
 def test_other_named_item_with_quality_eq_1():
-    random.seed(6)
     items = [
-        Item("Foo", random.randint(-100, 0), 1),
-        Item("Bar", random.randint(1, 100), 1)
+        Item("Foo", random.randint(-ANY_VALUE, 0), 1),
+        Item("Bar", random.randint(1, ANY_VALUE), 1)
     ]
 
     gilded_rose = GildedRose(items)
@@ -204,11 +212,10 @@ def test_other_named_item_with_quality_eq_1():
 
 
 def test_other_named_item_with_quality_gt_1():
-    random.seed(6)
-    quality = random.randint(2, 100)
+    quality = random.randint(2, ANY_VALUE)
     items = [
-        Item("Foo", random.randint(-100, 0), quality),
-        Item("Bar", random.randint(1, 100), quality)
+        Item("Foo", random.randint(-ANY_VALUE, 0), quality),
+        Item("Bar", random.randint(1, ANY_VALUE), quality)
     ]
 
     gilded_rose = GildedRose(items)
@@ -219,9 +226,8 @@ def test_other_named_item_with_quality_gt_1():
 
 
 def test_other_named_item_with_quality_leq_0():
-    random.seed(7)
-    quality = random.randint(-100, 0)
-    sell_in = random.randint(-100, 100)
+    quality = random.randint(-ANY_VALUE, 0)
+    sell_in = random.randint(-ANY_VALUE, ANY_VALUE)
     items = [
         Item("Foo", sell_in, quality),
         Item("Bar", sell_in, quality)
